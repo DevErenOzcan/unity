@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class ProductMover : MonoBehaviour
 {
-    public Vector3 startPosition = new Vector3(0, 1.1f, -6f);
-    public Vector3 endPosition = new Vector3(0, 1.1f, 6f);
+    public Vector3 startPosition = new Vector3(0, 1.2f, -6f);
+    public Vector3 endPosition = new Vector3(0, 1.2f, 6f);
     public float speed = 6f;
 
     [Header("Randomization Settings")]
