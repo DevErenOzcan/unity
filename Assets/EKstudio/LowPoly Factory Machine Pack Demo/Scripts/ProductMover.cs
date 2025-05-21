@@ -7,22 +7,15 @@ public class ProductMover : MonoBehaviour
     public float speed = 6f;
 
     [Header("Randomization Settings")]
-    public float maxPositionOffset = 0.1f; // Pozisyon için maksimum rastgele sapma
-    public float maxRotationOffset = 5f;   // Rotasyon için maksimum rastgele açı (Euler açıları)
-    public float maxScaleOffset = 0.1f;    // Ölçek için maksimum rastgele sapma (orijinal ölçeğe göre)
-
-    private Vector3 originalScale; // Objelerin orijinal ölçeğini tutmak için
+    public float maxRotationOffset = 5f;   // Yalnızca Y ekseninde rastgele açı
 
     private void Start()
     {
         // Objeyi başlangıç noktasına yerleştir
         transform.position = startPosition;
 
-        // Orijinal ölçeği kaydet
-        originalScale = transform.localScale;
-
-        // Objeye ilk rastgele değişiklikleri uygula
-        ApplyRandomVariations();
+        // Başlangıçta rastgele rotasyon uygula
+        ApplyRandomRotation();
     }
 
     private void Update()
@@ -30,7 +23,7 @@ public class ProductMover : MonoBehaviour
         // Objeyi ileri taşı
         transform.position = Vector3.MoveTowards(transform.position, endPosition, speed * Time.deltaTime);
 
-        // Bitiş noktasına ulaştıysa sıfırla ve yeni rastgele değişiklikler uygula
+        // Bitiş noktasına ulaştıysa sıfırla ve yeni rastgele rotasyon uygula
         if (Vector3.Distance(transform.position, endPosition) < 0.01f)
         {
             RestartMovement();
@@ -42,26 +35,14 @@ public class ProductMover : MonoBehaviour
         // Objeyi başa döndür
         transform.position = startPosition;
 
-        // Objeye yeni rastgele değişiklikleri uygula
-        ApplyRandomVariations();
+        // Yalnızca rotasyonu rastgele değiştir
+        ApplyRandomRotation();
     }
 
-    void ApplyRandomVariations()
+    void ApplyRandomRotation()
     {
-        // Rastgele pozisyon sapması
-        float randomXPos = Random.Range(-maxPositionOffset, maxPositionOffset);
-        float randomYPos = Random.Range(-maxPositionOffset, maxPositionOffset);
-        float randomZPos = Random.Range(-maxPositionOffset, maxPositionOffset);
-        transform.position += new Vector3(randomXPos, randomYPos, randomZPos);
-
-        // Rastgele rotasyon (Euler açıları ile)
-        float randomXRot = Random.Range(-maxRotationOffset, maxRotationOffset);
+        // Sadece Y ekseninde rastgele rotasyon uygula
         float randomYRot = Random.Range(-maxRotationOffset, maxRotationOffset);
-        float randomZRot = Random.Range(-maxRotationOffset, maxRotationOffset);
-        transform.rotation *= Quaternion.Euler(randomXRot, randomYRot, randomZRot); // Mevcut rotasyona ekle
-
-        // Rastgele ölçek
-        float randomScaleFactor = Random.Range(-maxScaleOffset, maxScaleOffset);
-        transform.localScale = originalScale * (1f + randomScaleFactor); // Orijinal ölçeğe göre ayarla
+        transform.rotation = Quaternion.Euler(0f, randomYRot, 0f);
     }
 }

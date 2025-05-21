@@ -1,11 +1,12 @@
 using UnityEngine;
-using System.IO;
+using UnityEngine.Networking;
+using System.Collections;
 
 public class CameraCapture : MonoBehaviour
 {
-    public Transform target; // Takip edilecek obje
-    public float triggerRadius = 1.3f; // (0,0,0) noktasına ne kadar yaklaşıldığında tetiklenir
-    public float cooldown = 2f; // Aynı noktadan geçerken tekrar tekrar tetiklenmesini önlemek için süre
+    public Transform target;
+    public float triggerRadius = 1.3f;
+    public float cooldown = 2f;
     private float lastCaptureTime = -Mathf.Infinity;
     private bool hasCaptured = false;
 
@@ -17,32 +18,54 @@ public class CameraCapture : MonoBehaviour
 
         if (distanceToOrigin <= triggerRadius && !hasCaptured && Time.time - lastCaptureTime > cooldown)
         {
-            StartCoroutine(CaptureScreenshot());
+            StartCoroutine(CaptureAndSendScreenshot());
             lastCaptureTime = Time.time;
             hasCaptured = true;
         }
 
-        // Obje uzaklaştıysa tekrar tetiklemeye izin ver
         if (distanceToOrigin > triggerRadius)
         {
             hasCaptured = false;
         }
     }
 
-    private System.Collections.IEnumerator CaptureScreenshot()
+    private IEnumerator CaptureAndSendScreenshot()
     {
-        // Ekran görüntüsü alımı için bir frame bekle
         yield return new WaitForEndOfFrame();
 
-        string directory = Path.Combine(Application.dataPath, "Screenshots");
-        if (!Directory.Exists(directory))
-            Directory.CreateDirectory(directory);
+        // Ekranı belleğe al
+        Texture2D screenImage = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
+        screenImage.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+        screenImage.Apply();
 
-        string filename = "capture_" + System.DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".png";
-        string filepath = Path.Combine(directory, filename);
+        // PNG formatına dönüştür
+        byte[] imageData = screenImage.EncodeToPNG();
 
-        ScreenCapture.CaptureScreenshot(filepath);
-        Debug.Log("Ekran görüntüsü alındı: " + filepath);
+        // Sunucuya gönder
+        StartCoroutine(SendImageToServer(imageData));
+
+        // Belleği temizle
+        Destroy(screenImage);
+    }
+
+    private IEnumerator SendImageToServer(byte[] imageData)
+    {
+        // Flask sunucu adresi (kendine göre düzenle)
+        string url = "http://127.0.0.1:5000/upload_from_unity";
+
+        WWWForm form = new WWWForm();
+        form.AddBinaryData("image", imageData, "screenshot.png", "image/png");
+
+        UnityWebRequest www = UnityWebRequest.Post(url, form);
+        yield return www.SendWebRequest();
+
+        if (www.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("Görüntü başarıyla gönderildi.");
+        }
+        else
+        {
+            Debug.LogError("Gönderme hatası: " + www.error);
+        }
     }
 }
-
