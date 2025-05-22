@@ -82,6 +82,7 @@ public class ProductController : MonoBehaviour
     {
         transform.position = startPosition;
         ApplyRandomRotation();
+        ApplyRandomTexture();
         hasCaptured = false;
         isDefective = false;
         movingToSide = false;
@@ -91,6 +92,30 @@ public class ProductController : MonoBehaviour
     {
         float randomYRot = Random.Range(-5f, 5f);
         transform.rotation = Quaternion.Euler(0f, randomYRot, 0f);
+    }
+
+    void ApplyRandomTexture()
+    {
+        Texture2D[] textures = Resources.LoadAll<Texture2D>("Textures");
+
+        if (textures.Length == 0)
+        {
+            Debug.LogWarning("Hiçbir texture bulunamadı. Lütfen 'Resources/Textures' klasörünü kontrol edin.");
+            return;
+        }
+
+        Texture2D randomTexture = textures[Random.Range(0, textures.Length)];
+
+        Renderer renderer = GetComponent<Renderer>();
+        if (renderer != null && renderer.material != null)
+        {
+            renderer.material.mainTexture = randomTexture;
+            Debug.Log("Rastgele texture uygulandı: " + randomTexture.name);
+        }
+        else
+        {
+            Debug.LogWarning("Renderer ya da materyal bulunamadı.");
+        }
     }
 
     private IEnumerator CaptureAndSendScreenshot()
@@ -145,3 +170,4 @@ public class ProductController : MonoBehaviour
         }
     }
 }
+
